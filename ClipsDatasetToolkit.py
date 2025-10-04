@@ -1,3 +1,4 @@
+from PySide6.QtCore import QUrl
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 from ui_MainWindow import Ui_MainWindow
@@ -24,6 +25,19 @@ class MainWindow(QMainWindow):
         self.ui.c2PathLineEdit.editingFinished.connect(self.updateC2Path)
         self.ui.c3PathLineEdit.editingFinished.connect(self.updateC3Path)
         self.ui.c4PathLineEdit.editingFinished.connect(self.updateC4Path)
+        self.player.setVideoOutput(self.ui.playerWidget)
+        self.audio_output = QAudioOutput()
+        self.player.setAudioOutput(self.audio_output)
+        
+
+    def playClip(self, item):
+        selected_filename = item.text()
+        full_clip_object = self.clips_path / selected_filename
+        clip_url = QUrl.fromLocalFile(str(full_clip_object))
+        self.player.setSource(clip_url)
+        
+        self.player.play()
+
     def updateClipsPath(self):
         self.clips_path = pathlib.Path(self.ui.clipsPathLineEdit.text())
         if self.clips_path.is_dir():
