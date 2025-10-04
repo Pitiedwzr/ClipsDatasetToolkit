@@ -35,6 +35,7 @@ class MainWindow(QMainWindow):
         self.reactionTimer.timeout.connect(self.delayedPlay)
         self.player.setVideoOutput(self.ui.playerWidget)
         self.player.setAudioOutput(self.playerAudio)
+        self.player.mediaStatusChanged.connect(self.updateMediaStatus)
 
     def playClip(self, item):
         full_clip_object = item.data(Qt.UserRole)
@@ -70,6 +71,11 @@ class MainWindow(QMainWindow):
     def updateReactionTime(self):
         self.reaction_time = int(self.ui.timerFloatBox.value() * 1000)
 
+    def updateMediaStatus(self, status):
+        if status == QMediaPlayer.MediaStatus.EndOfMedia:
+            self.delayed = True
+            self.playNextClip()
+
     def playNextClip(self):
         current_row = self.ui.clipsListWidget.currentRow()
         next_row = current_row + 1
@@ -80,7 +86,7 @@ class MainWindow(QMainWindow):
         
         self.ui.clipsListWidget.setCurrentRow(next_row)
         self.next_item = self.ui.clipsListWidget.item(next_row)
-        if self.reaction_time > 0: # Wrong implementation, should also check player state
+        if self.reaction_time > 0 and self.delayed:
             self.reactionTimer.start(self.reaction_time)
         else:
             self.playClip(self.next_item)
