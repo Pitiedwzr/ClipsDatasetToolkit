@@ -98,7 +98,7 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"CilpsDatasetToolkit", None))
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"ClipsDatasetToolkit", None))
         self.clipsLabel.setText(QCoreApplication.translate("MainWindow", u"Path to clips", None))
         self.c1Label.setText(QCoreApplication.translate("MainWindow", u"Category 1", None))
         self.c2Label.setText(QCoreApplication.translate("MainWindow", u"Category 2", None))
