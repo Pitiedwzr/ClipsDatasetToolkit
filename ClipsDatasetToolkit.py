@@ -1,6 +1,6 @@
 from PySide6.QtGui import QKeyEvent
 from PySide6.QtCore import Qt, QUrl, QTimer
-from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
+from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QListWidgetItem
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 from ui_MainWindow import Ui_MainWindow
 import pathlib
@@ -37,8 +37,7 @@ class MainWindow(QMainWindow):
         self.player.setAudioOutput(self.playerAudio)
 
     def playClip(self, item):
-        selected_filename = item.text()
-        full_clip_object = self.clips_path / selected_filename
+        full_clip_object = item.data(Qt.UserRole)
         clip_url = QUrl.fromLocalFile(str(full_clip_object))
         self.player.setSource(clip_url)
         self.player.play()
@@ -49,7 +48,9 @@ class MainWindow(QMainWindow):
             self.ui.clipsListWidget.clear()
             for clip in self.clips_path.iterdir():
                 if clip.suffix in [".mp4", ".avi", ".mov", ".mkv"]:
-                    self.ui.clipsListWidget.addItem(clip.name)
+                    item = QListWidgetItem(clip.name)
+                    item.setData(Qt.UserRole, clip) # Use data to store the full path (definitely will use ListView next time)
+                    self.ui.clipsListWidget.addItem(item)
         else:
             QMessageBox.warning(self, "Invalid Path", "The specified clips path is not a valid directory.")
             self.ui.clipsListWidget.clear()
@@ -79,7 +80,7 @@ class MainWindow(QMainWindow):
         
         self.ui.clipsListWidget.setCurrentRow(next_row)
         self.next_item = self.ui.clipsListWidget.item(next_row)
-        if self.reaction_time > 0:
+        if self.reaction_time > 0: # Wrong implementation, should also check player state
             self.reactionTimer.start(self.reaction_time)
         else:
             self.playClip(self.next_item)
@@ -103,14 +104,15 @@ class MainWindow(QMainWindow):
                 selected_item = self.ui.clipsListWidget.currentItem()
                 if selected_item:
                     selected_filename = selected_item.text()
-                    source_path = self.clips_path / selected_filename
+                    source_path = selected_item.data(Qt.UserRole)
                     target_dir = self.category_map[key]
                     target_path = target_dir / selected_filename
                     target_dir.mkdir(exist_ok=True)
                     try:
                         self.player.stop()
                         self.player.setSource(QUrl()) # Clear source to release file lock
-                        source_path.rename(target_path) 
+                        source_path.rename(target_path)
+                        selected_item.setData(Qt.UserRole, target_path)
                         self.playNextClip()
                     except Exception as e:
                         QMessageBox.critical(self, "Error", f"Failed to move file: {e}")
