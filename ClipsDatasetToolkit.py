@@ -1,4 +1,5 @@
-from PySide6.QtCore import QUrl
+from PySide6.QtGui import QKeyEvent
+from PySide6.QtCore import Qt, QUrl, QTimer
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 from ui_MainWindow import Ui_MainWindow
@@ -9,9 +10,12 @@ class MainWindow(QMainWindow):
     def __init__(self):
         self.clips_path = ""
         self.reaction_time = 0
-        self.c2_path = ""
-        self.c3_path = ""
-        self.c4_path = ""
+        self.category_map = {
+        Qt.Key_1: "",
+        Qt.Key_2: "",
+        Qt.Key_3: "",
+        Qt.Key_4: "",
+        }
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -31,14 +35,12 @@ class MainWindow(QMainWindow):
         self.reactionTimer.timeout.connect(self.delayedPlay)
         self.player.setVideoOutput(self.ui.playerWidget)
         self.player.setAudioOutput(self.playerAudio)
-        
 
     def playClip(self, item):
         selected_filename = item.text()
         full_clip_object = self.clips_path / selected_filename
         clip_url = QUrl.fromLocalFile(str(full_clip_object))
         self.player.setSource(clip_url)
-        
         self.player.play()
 
     def updateClipsPath(self):
@@ -53,16 +55,17 @@ class MainWindow(QMainWindow):
             self.ui.clipsListWidget.clear()
 
     def updateC1Path(self):
-        self.c1_path = pathlib.Path(self.ui.c1PathLineEdit.text())
+        self.category_map[Qt.Key_1] = pathlib.Path(self.ui.c1PathLineEdit.text())
 
     def updateC2Path(self):
-        self.c2_path = pathlib.Path(self.ui.c2PathLineEdit.text())
+        self.category_map[Qt.Key_2] = pathlib.Path(self.ui.c2PathLineEdit.text())
 
     def updateC3Path(self):
-        self.c3_path = pathlib.Path(self.ui.c3PathLineEdit.text())
+        self.category_map[Qt.Key_3] = pathlib.Path(self.ui.c3PathLineEdit.text())
 
     def updateC4Path(self):
-        self.c4_path = pathlib.Path(self.ui.c4PathLineEdit.text())
+        self.category_map[Qt.Key_4] = pathlib.Path(self.ui.c4PathLineEdit.text())
+
     def updateReactionTime(self):
         self.reaction_time = int(self.ui.timerFloatBox.value() * 1000)
 
@@ -85,6 +88,38 @@ class MainWindow(QMainWindow):
         self.reactionTimer.stop()
         if self.next_item:
             self.playClip(self.next_item)
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        if isinstance(event, QKeyEvent):
+            if key == Qt.Key_Space:
+                if self.player.playbackState() == QMediaPlayer.PlayingState:
+                    self.player.pause()
+                else:
+                    self.player.play()
+            elif key == Qt.Key_S:
+                self.player.stop()
+            elif key in self.category_map:
+                selected_item = self.ui.clipsListWidget.currentItem()
+                if selected_item:
+                    selected_filename = selected_item.text()
+                    source_path = self.clips_path / selected_filename
+                    target_dir = self.category_map[key]
+                    target_path = target_dir / selected_filename
+                    target_dir.mkdir(exist_ok=True)
+                    try:
+                        self.player.stop()
+                        self.player.setSource(QUrl()) # Clear source to release file lock
+                        source_path.rename(target_path) 
+                        self.playNextClip()
+                    except Exception as e:
+                        QMessageBox.critical(self, "Error", f"Failed to move file: {e}")
+                else:
+                    QMessageBox.information(self, "No Selection", "Please select a clip to categorize.")
+            else:
+                super().keyPressEvent(event)
+        else:
+            super().keyPressEvent(event)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
