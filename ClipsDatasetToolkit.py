@@ -8,7 +8,7 @@ import sys
 class MainWindow(QMainWindow):
     def __init__(self):
         self.clips_path = ""
-        self.c1_path = ""
+        self.reaction_time = 0
         self.c2_path = ""
         self.c3_path = ""
         self.c4_path = ""
@@ -16,6 +16,7 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.player = QMediaPlayer()
+        self.reactionTimer = QTimer()
         self.initSlots()
 
     def initSlots(self):
@@ -25,6 +26,8 @@ class MainWindow(QMainWindow):
         self.ui.c2PathLineEdit.editingFinished.connect(self.updateC2Path)
         self.ui.c3PathLineEdit.editingFinished.connect(self.updateC3Path)
         self.ui.c4PathLineEdit.editingFinished.connect(self.updateC4Path)
+        self.ui.timerFloatBox.valueChanged.connect(self.updateReactionTime)
+        self.reactionTimer.timeout.connect(self.delayedPlay)
         self.player.setVideoOutput(self.ui.playerWidget)
         self.audio_output = QAudioOutput()
         self.player.setAudioOutput(self.audio_output)
@@ -60,6 +63,28 @@ class MainWindow(QMainWindow):
 
     def updateC4Path(self):
         self.c4_path = pathlib.Path(self.ui.c4PathLineEdit.text())
+    def updateReactionTime(self):
+        self.reaction_time = int(self.ui.timerFloatBox.value() * 1000)
+
+    def playNextClip(self):
+        current_row = self.ui.clipsListWidget.currentRow()
+        next_row = current_row + 1
+        if next_row >= self.ui.clipsListWidget.count():
+            self.player.stop()
+            next_row = 0 
+            return
+        
+        self.ui.clipsListWidget.setCurrentRow(next_row)
+        self.next_item = self.ui.clipsListWidget.item(next_row)
+        if self.reaction_time > 0:
+            self.reactionTimer.start(self.reaction_time)
+        else:
+            self.playClip(self.next_item)
+
+    def delayedPlay(self):
+        self.reactionTimer.stop()
+        if self.next_item:
+            self.playClip(self.next_item)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

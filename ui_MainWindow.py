@@ -17,9 +17,10 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
 from PySide6.QtMultimediaWidgets import QVideoWidget
-from PySide6.QtWidgets import (QApplication, QLabel, QLineEdit, QListWidget,
-    QListWidgetItem, QMainWindow, QMenu, QMenuBar,
-    QPushButton, QSizePolicy, QStatusBar, QWidget)
+from PySide6.QtWidgets import (QApplication, QDoubleSpinBox, QLabel, QLineEdit,
+    QListWidget, QListWidgetItem, QMainWindow, QMenu,
+    QMenuBar, QPushButton, QSizePolicy, QStatusBar,
+    QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -79,6 +80,12 @@ class Ui_MainWindow(object):
         self.c4PathButton = QPushButton(self.centralwidget)
         self.c4PathButton.setObjectName(u"c4PathButton")
         self.c4PathButton.setGeometry(QRect(1370, 680, 21, 21))
+        self.timerFloatBox = QDoubleSpinBox(self.centralwidget)
+        self.timerFloatBox.setObjectName(u"timerFloatBox")
+        self.timerFloatBox.setGeometry(QRect(740, 480, 87, 22))
+        self.timerLabel = QLabel(self.centralwidget)
+        self.timerLabel.setObjectName(u"timerLabel")
+        self.timerLabel.setGeometry(QRect(640, 480, 91, 21))
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
@@ -98,7 +105,7 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"ClipsDatasetToolkit", None))
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"CilpsDatasetToolkit", None))
         self.clipsLabel.setText(QCoreApplication.translate("MainWindow", u"Path to clips", None))
         self.c1Label.setText(QCoreApplication.translate("MainWindow", u"Category 1", None))
         self.c2Label.setText(QCoreApplication.translate("MainWindow", u"Category 2", None))
@@ -109,6 +116,7 @@ class Ui_MainWindow(object):
         self.c2PathButton.setText(QCoreApplication.translate("MainWindow", u"...", None))
         self.c3PathButton.setText(QCoreApplication.translate("MainWindow", u"...", None))
         self.c4PathButton.setText(QCoreApplication.translate("MainWindow", u"...", None))
+        self.timerLabel.setText(QCoreApplication.translate("MainWindow", u"Wait Seconds", None))
         self.menuFiles.setTitle(QCoreApplication.translate("MainWindow", u"Files", None))
     # retranslateUi
 
