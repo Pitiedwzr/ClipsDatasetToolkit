@@ -16,6 +16,7 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.player = QMediaPlayer()
+        self.playerAudio = QAudioOutput()
         self.reactionTimer = QTimer()
         self.initSlots()
 
@@ -29,8 +30,7 @@ class MainWindow(QMainWindow):
         self.ui.timerFloatBox.valueChanged.connect(self.updateReactionTime)
         self.reactionTimer.timeout.connect(self.delayedPlay)
         self.player.setVideoOutput(self.ui.playerWidget)
-        self.audio_output = QAudioOutput()
-        self.player.setAudioOutput(self.audio_output)
+        self.player.setAudioOutput(self.playerAudio)
         
 
     def playClip(self, item):
