@@ -10,6 +10,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         self.clips_path = ""
         self.reaction_time = 0
+        self.delayed = False
         self.category_map = {
         Qt.Key_1: "",
         Qt.Key_2: "",
@@ -78,23 +79,26 @@ class MainWindow(QMainWindow):
 
     def playNextClip(self):
         current_row = self.ui.clipsListWidget.currentRow()
-        next_row = current_row + 1
-        if next_row >= self.ui.clipsListWidget.count():
+        self.next_row = current_row + 1
+        if self.next_row >= self.ui.clipsListWidget.count():
             self.player.stop()
-            next_row = 0 
+            self.next_row = 0 
             return
-        
-        self.ui.clipsListWidget.setCurrentRow(next_row)
-        self.next_item = self.ui.clipsListWidget.item(next_row)
+
+        self.next_item = self.ui.clipsListWidget.item(self.next_row)
         if self.reaction_time > 0 and self.delayed:
             self.reactionTimer.start(self.reaction_time)
         else:
+            self.delayed = False
             self.playClip(self.next_item)
+            self.ui.clipsListWidget.setCurrentRow(self.next_row)
 
     def delayedPlay(self):
         self.reactionTimer.stop()
         if self.next_item:
+            self.delayed = False
             self.playClip(self.next_item)
+            self.ui.clipsListWidget.setCurrentRow(self.next_row)
 
     def keyPressEvent(self, event):
         key = event.key()
@@ -107,6 +111,9 @@ class MainWindow(QMainWindow):
             elif key == Qt.Key_S:
                 self.player.stop()
             elif key in self.category_map:
+                # Stop the timer so won't play twice
+                if self.reactionTimer.isActive():
+                    self.reactionTimer.stop()
                 selected_item = self.ui.clipsListWidget.currentItem()
                 if selected_item:
                     selected_filename = selected_item.text()
@@ -119,6 +126,7 @@ class MainWindow(QMainWindow):
                         self.player.setSource(QUrl()) # Clear source to release file lock
                         source_path.rename(target_path)
                         selected_item.setData(Qt.UserRole, target_path)
+                        self.delayed = False
                         self.playNextClip()
                     except Exception as e:
                         QMessageBox.critical(self, "Error", f"Failed to move file: {e}")
